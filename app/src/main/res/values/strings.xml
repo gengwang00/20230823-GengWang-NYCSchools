@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">New York City Schools</string>
+    <string name="title_activity_auth">AuthActivity</string>
+</resources>
