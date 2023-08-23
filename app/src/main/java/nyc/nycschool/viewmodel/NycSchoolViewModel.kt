@@ -7,24 +7,27 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.launch
-import nyc.nycschool.network.model.NetworkResult
+import io.reactivex.rxjava3.core.Scheduler
+import nyc.nycschool.di.IoScheduler
+import nyc.nycschool.di.MainScheduler
 import nyc.nycschool.network.model.SatModel
 import nyc.nycschool.network.model.SchoolModel
-import nyc.nycschool.repository.MainRepository
+import nyc.nycschool.repository.NycSchoolRepository
 import javax.inject.Inject
+
 
 @HiltViewModel
 class NycSchoolViewModel @Inject constructor(
-    private val mainRepository: MainRepository
-) : ViewModel(), DefaultLifecycleObserver {
+    private val nycSchoolRepository: NycSchoolRepository,
+    @IoScheduler private val ioScheduler: Scheduler,
+    @MainScheduler private val mainScheduler: Scheduler
+) :     ViewModel(), DefaultLifecycleObserver {
 
     val snapshotStateList = SnapshotStateList<SchoolModel>()
+
     var loading: Boolean by mutableStateOf(false)
     var apiCallError: Boolean by mutableStateOf(false)
-    var apiCallSatError: Boolean by mutableStateOf(false)
     var satModel: SatModel? by mutableStateOf(null)
 
     override fun onCreate(owner: LifecycleOwner) {
@@ -34,44 +37,28 @@ class NycSchoolViewModel @Inject constructor(
     }
 
     fun getSATScore(schooldID: String) {
-        viewModelScope.launch {
-            loading = true
-            apiCallSatError = false
-            satModel = null
+        loading = true
+        apiCallError = false
+        satModel = null
 
-            val result = mainRepository.getaSatScore(schooldID )
-
-            result?.let{
-                satModel = it
-            }
-            if (satModel == null) {
-                        apiCallSatError = true
-                    }
-
-            loading = false
-        }
+        nycSchoolRepository.getNycSchoolSats(schooldID)
+            .subscribeOn(ioScheduler)
+            .observeOn(mainScheduler)
+            .subscribe(
+                { satModel = it; }, { apiCallError = true }, { loading = false })
     }
 
-    private fun getNycSchools() = viewModelScope.launch {
+    private fun getNycSchools() {
         loading = true
+        apiCallError = false
 
-        when (val result = mainRepository.getAllSchools()) {
-            is NetworkResult.Success -> {
-                result.data?.let { list ->
-                    val sortedList = list.sortedWith(compareBy { it.title })
-                    snapshotStateList.addAll(sortedList)
-                }
-
-                // Edge case: API call is successful but no data returned
-                if (snapshotStateList.isEmpty()) {
-                    apiCallError = true
-                }
-            }
-
-            else -> {
-                apiCallError = true
-            }
-        }
-        loading = false
+        nycSchoolRepository.getNycSchools()
+            .map { a -> a.sortedBy { it.title } }
+            .subscribeOn(ioScheduler)
+            .observeOn(mainScheduler)
+            .subscribe(
+                { list -> snapshotStateList.addAll(list) },
+                { apiCallError = true },
+                { loading = false })
     }
 }

@@ -4,13 +4,14 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import nyc.nycschool.BuildConfig
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.core.Scheduler
+import io.reactivex.rxjava3.schedulers.Schedulers
+import nyc.nycschool.network.api.NycSchoolApiService
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
-import nyc.nycschool.network.api.SchoolApiService
 import retrofit2.Retrofit
+import retrofit2.adapter.rxjava3.RxJava3CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
@@ -42,18 +43,22 @@ object RestNetworkModule {
         okHttpClient: OkHttpClient
     ): Retrofit {
         val retrofit = Retrofit.Builder().baseUrl("https://data.cityofnewyork.us").client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create()).build();
+            .addConverterFactory(GsonConverterFactory.create())
+            .addCallAdapterFactory(RxJava3CallAdapterFactory.create()).build();
         return retrofit;
     }
 
     @Singleton
     @Provides
-    fun provideApiService(retrofit: Retrofit): SchoolApiService {
-        return retrofit.create(SchoolApiService::class.java)
+    fun provideSchoolApiService(retrofit: Retrofit): NycSchoolApiService {
+        return retrofit.create(NycSchoolApiService::class.java)
     }
 
     @Provides
-    fun provideIDispatcher(): CoroutineDispatcher {
-        return Dispatchers.IO
-    }
+    @IoScheduler
+    fun provideIoScheduler(): Scheduler = Schedulers.io()
+
+    @Provides
+    @MainScheduler
+    fun provideMainScheduler(): Scheduler = AndroidSchedulers.mainThread()
 }

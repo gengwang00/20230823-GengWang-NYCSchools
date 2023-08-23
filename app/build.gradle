@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId "nyc.nycschool"
-        minSdk 21
+        minSdk 24
         targetSdk 33
         versionCode 1
         versionName "1.0"
@@ -79,4 +79,16 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.5.2' // For testing coroutines
     testImplementation 'io.mockk:mockk:1.12.0' // For mocking dependencies
+
+    // Rxjava
+//    implementation 'io.reactivex.rxjava2:rxjava:2.2.21'
+    implementation 'com.squareup.retrofit2:adapter-rxjava3:2.9.0'
+//    implementation 'io.reactivex.rxjava2:rxandroid:2.2.21'
+
+    implementation 'io.reactivex.rxjava3:rxandroid:3.0.2'
+    // Because RxAndroid releases are few and far between, it is recommended you also
+    // explicitly depend on RxJava's latest version for bug fixes and new features.
+    // (see https://github.com/ReactiveX/RxJava/releases for latest 3.x.x version)
+    implementation 'io.reactivex.rxjava3:rxjava:3.1.5'
+
 }

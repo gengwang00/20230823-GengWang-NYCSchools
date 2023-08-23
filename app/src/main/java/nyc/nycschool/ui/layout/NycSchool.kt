@@ -17,19 +17,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import nyc.nycschool.R
 import nyc.nycschool.app.ERROR_MESSAGE
 import nyc.nycschool.network.model.SchoolModel
-import nyc.nycschool.viewmodel.NycSchoolViewModel
-import androidx.navigation.NavHostController
-import coil.compose.rememberImagePainter
-import coil.transform.CircleCropTransformation
-import nyc.nycschool.R
 import nyc.nycschool.ui.component.DisplayLoadingSpinner
 import nyc.nycschool.ui.component.DisplayMessage
+import nyc.nycschool.viewmodel.NycSchoolViewModel
 
 @Composable
 fun NycSchool(navController: NavHostController, viewModel: NycSchoolViewModel) {
@@ -78,7 +74,6 @@ fun DisplayOneSchool(
     schoolModel: SchoolModel,
     viewModel: NycSchoolViewModel
 ) {
-    val context = LocalContext.current;
     Card(modifier = Modifier
         .padding(8.dp),
         onClick = {
